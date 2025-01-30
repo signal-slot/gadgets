@@ -11,8 +11,6 @@ class AdvancedGadget : public AbstractGadget
 
 public:
     AdvancedGadget() : AbstractGadget(new Data) {}
-    AdvancedGadget(const AdvancedGadget &) = default;
-    AdvancedGadget &operator=(const AdvancedGadget &) = default;
 
     QColor color() const {
         return D<Data>()->color;
@@ -25,7 +23,7 @@ public:
 private:
     struct Data : public AbstractGadget::Data<Data> {
         Data() = default;
-        Data(const Data& other)
+        Data(const Data &other)
             : AbstractGadget::Data<Data>(other)
             , color(other.color)
         {}

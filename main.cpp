@@ -18,8 +18,8 @@ int main(int argc, char *argv[])
         AdvancedGadget adv2 = adv1;
         adv2.setColor(Qt::red);
 
-        qDebug() << "adv1 color:" << adv1.color().name(); // Should be blue
-        qDebug() << "adv2 color:" << adv2.color().name(); // Should be red
+        qDebug() << "adv1 color:" << adv1.color(); // Should be blue
+        qDebug() << "adv2 color:" << adv2.color(); // Should be red
     }
 
     // Test composite gadget
