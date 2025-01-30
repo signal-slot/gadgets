@@ -10,35 +10,35 @@ class DocumentGadget : public AbstractGadget {
     Q_PROPERTY(TextGadget body READ body WRITE setBody)
 
 public:
-    DocumentGadget() : AbstractGadget(new Data) {}
+    DocumentGadget() : AbstractGadget(new Private) {}
     const QMetaObject* metaObject() const override { return &staticMetaObject; }
 
     TextGadget header() const {
-        return D<Data>()->header;
+        return d<Private>()->header;
     }
 
     void setHeader(const TextGadget& header) {
         if (this->header() == header) return;
-        D<Data>()->header = header;
+        d<Private>()->header = header;
     }
 
     TextGadget body() const {
-        return D<Data>()->body;
+        return d<Private>()->body;
     }
 
     void setBody(const TextGadget& body) {
         if (this->body() == body) return;
-        D<Data>()->body = body;
+        d<Private>()->body = body;
     }
 
 private:
-    struct Data : public AbstractGadget::Data<Data> {
+    struct Private : public AbstractGadget::Private<Private> {
         TextGadget header;
         TextGadget body;
 
-        Data() = default;
-        Data(const Data& other)
-            : AbstractGadget::Data<Data>(other)
+        Private() = default;
+        Private(const Private& other)
+            : AbstractGadget::Private<Private>(other)
             , header(other.header)
             , body(other.body)
         {}

@@ -10,23 +10,23 @@ class AdvancedGadget : public AbstractGadget
     Q_PROPERTY(QColor color READ color WRITE setColor)
 
 public:
-    AdvancedGadget() : AbstractGadget(new Data) {}
+    AdvancedGadget() : AbstractGadget(new Private) {}
     const QMetaObject* metaObject() const override { return &staticMetaObject; }
 
     QColor color() const {
-        return D<Data>()->color;
+        return d<Private>()->color;
     }
 
     void setColor(const QColor& color) {
         if (this->color() == color) return;
-        D<Data>()->color = color;
+        d<Private>()->color = color;
     }
 
 private:
-    struct Data : public AbstractGadget::Data<Data> {
-        Data() = default;
-        Data(const Data &other)
-            : AbstractGadget::Data<Data>(other)
+    struct Private : public AbstractGadget::Private<Private> {
+        Private() = default;
+        Private(const Private &other)
+            : AbstractGadget::Private<Private>(other)
             , color(other.color)
         {}
 

@@ -11,37 +11,37 @@ class CompositeGadget : public AbstractGadget
     Q_PROPERTY(int priority READ priority WRITE setPriority)
 
 public:
-    CompositeGadget() : AbstractGadget(new Data) {}
+    CompositeGadget() : AbstractGadget(new Private) {}
 
     const QMetaObject* metaObject() const override { return &staticMetaObject; }
 
     // Return by value to ensure proper copy-on-write
     AdvancedGadget advanced() const {
-        return D<Data>()->advanced;
+        return d<Private>()->advanced;
     }
 
     void setAdvanced(const AdvancedGadget& advanced) {
         if (this->advanced() == advanced) return;
-        D<Data>()->advanced = advanced;
+        d<Private>()->advanced = advanced;
     }
 
     int priority() const {
-        return D<Data>()->priority;
+        return d<Private>()->priority;
     }
 
     void setPriority(int priority) {
         if (this->priority() == priority) return;
-        D<Data>()->priority = priority;
+        d<Private>()->priority = priority;
     }
 
 private:
-    struct Data : public AbstractGadget::Data<Data> {
+    struct Private : public AbstractGadget::Private<Private> {
         AdvancedGadget advanced;
         int priority = 0;
 
-        Data() = default;
-        Data(const Data& other)
-            : AbstractGadget::Data<Data>(other)
+        Private() = default;
+        Private(const Private& other)
+            : AbstractGadget::Private<Private>(other)
             , advanced(other.advanced)
             , priority(other.priority)
         {}

@@ -10,25 +10,25 @@ class TextGadget : public AbstractGadget
     Q_PROPERTY(QString content READ content WRITE setContent)
 
 public:
-    TextGadget() : AbstractGadget(new Data) {}
+    TextGadget() : AbstractGadget(new Private) {}
     const QMetaObject* metaObject() const override { return &staticMetaObject; }
 
     QString content() const {
-        return D<Data>()->content;
+        return d<Private>()->content;
     }
 
     void setContent(const QString& content) {
         if (this->content() == content) return;
-        D<Data>()->content = content;
+        d<Private>()->content = content;
     }
 
 private:
-    struct Data : public AbstractGadget::Data<Data> {
+    struct Private : public AbstractGadget::Private<Private> {
         QString content;
 
-        Data() = default;
-        Data(const Data& other)
-            : AbstractGadget::Data<Data>(other)
+        Private() = default;
+        Private(const Private& other)
+            : AbstractGadget::Private<Private>(other)
             , content(other.content)
         {}
     };

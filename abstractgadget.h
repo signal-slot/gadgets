@@ -10,12 +10,11 @@
 
 class AbstractGadget
 {
-    Q_GADGET
 protected:
     class AbstractData;
-    explicit AbstractGadget(AbstractData *d) : d(d) {}
+    explicit AbstractGadget(AbstractData *d) : data(d) {}
 public:
-    AbstractGadget() : d(new AbstractData) {}
+    AbstractGadget() {}
     AbstractGadget(const AbstractGadget &) = default;
     virtual ~AbstractGadget() = default;
     AbstractGadget &operator=(const AbstractGadget &) = default;
@@ -42,37 +41,37 @@ public:
 
 protected:
     template<typename DerivedData>
-    const DerivedData* D() const {
-        return static_cast<const DerivedData*>(d.constData());
+    const DerivedData* d() const {
+        return static_cast<const DerivedData*>(data.constData());
     }
 
     template<typename DerivedData>
-    DerivedData* D() {
+    DerivedData* d() {
         // do detach() manually
         // Do not use d->ref or not call d->clone(). They detach implicitly.
-        if (d.constData()->ref.loadRelaxed() != 1) {
-            d.reset(d.constData()->clone());
+        if (data.constData()->ref.loadRelaxed() != 1) {
+            data.reset(data.constData()->clone());
         }
-        return static_cast<DerivedData*>(d.data());
+        return static_cast<DerivedData*>(data.data());
     }
 
     class AbstractData : public QSharedData {
     public:
         AbstractData() = default;
         AbstractData(const AbstractData &other) : QSharedData(other) {}
-        virtual AbstractData* clone() const { return new AbstractData; }
+        virtual AbstractData* clone() const { return nullptr; }
     };
 
     template<typename T>
-    class Data : public AbstractData {
+    class Private : public AbstractData {
     public:
-        Data() : AbstractData() {}
-        Data(const Data &other) : AbstractData(other) {}
-        Data* clone() const override { return new T(*static_cast<const T*>(this)); }
+        Private() : AbstractData() {}
+        Private(const Private &other) : AbstractData(other) {}
+        Private* clone() const override { return new T(*static_cast<const T*>(this)); }
     };
 
 private:
-    QSharedDataPointer<AbstractData> d;
+    QSharedDataPointer<AbstractData> data;
 
     template <typename T>
     friend auto operator<<(QDebug debug, const T &gadget) -> std::enable_if_t<std::is_base_of_v<AbstractGadget, T>, QDebug> {
