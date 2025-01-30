@@ -29,7 +29,7 @@ This implementation is especially useful when you need to:
 - **Type-Safe Implementation**: Uses modern C++ templates and CRTP pattern
 - **Qt Integration**: 
   - Leverages Qt's meta-object system
-  - Uses Q_GADGET for property system integration
+  - Uses [Q_GADGET](https://doc.qt.io/qt-6/qobject.html#Q_GADGET) for property system integration
   - Provides custom debug output formatting
 - **Flexible Architecture**:
   - Base abstract class for common functionality
@@ -84,10 +84,10 @@ doc.body().setContent("Main content");
 - Provides the foundation for implicit sharing
 - Implements comparison operators
 - Handles debug output formatting
-- Manages shared data through QSharedDataPointer
+- Manages shared data through [QSharedDataPointer](https://doc.qt.io/qt-6/qshareddatapointer.html)
 
 ### Derived Classes
-- **AdvancedGadget**: Demonstrates simple property management with QColor
+- **AdvancedGadget**: Demonstrates simple property management with [QColor](https://doc.qt.io/qt-6/qcolor.html)
 - **CompositeGadget**: Shows how to compose multiple gadgets with additional properties
 - **TextGadget**: Implements basic text handling with implicit sharing
 - **DocumentGadget**: Demonstrates complex document structure with header and body
@@ -148,3 +148,16 @@ make
 - Clear separation of concerns
 - Consistent error checking
 - Property system integration
+
+## Qt Classes Used
+
+This project utilizes several Qt classes. Here are the key Qt classes with documentation links:
+
+- [QObject](https://doc.qt.io/qt-6/qobject.html) - Base class for Qt objects
+- [QMetaObject](https://doc.qt.io/qt-6/qmetaobject.html) - Contains meta-information about Qt objects
+- [QMetaProperty](https://doc.qt.io/qt-6/qmetaproperty.html) - Provides meta-data about a property
+- [QSharedData](https://doc.qt.io/qt-6/qshareddata.html) - Base class for implicitly shared objects
+- [QSharedDataPointer](https://doc.qt.io/qt-6/qshareddatapointer.html) - Pointer type for implicit sharing
+- [QColor](https://doc.qt.io/qt-6/qcolor.html) - Colors based on RGB, HSV or CMYK values
+- [QString](https://doc.qt.io/qt-6/qstring.html) - Unicode character string
+- [QDebug](https://doc.qt.io/qt-6/qdebug.html) - Debug stream for basic types
