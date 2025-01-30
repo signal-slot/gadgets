@@ -21,6 +21,7 @@ public:
     }
 
     void setAdvanced(const AdvancedGadget& advanced) {
+        if (this->advanced() == advanced) return;
         D<Data>()->advanced = advanced;
     }
 
@@ -28,8 +29,9 @@ public:
         return D<Data>()->priority;
     }
 
-    void setPriority(int val) {
-        D<Data>()->priority = val;
+    void setPriority(int priority) {
+        if (this->priority() == priority) return;
+        D<Data>()->priority = priority;
     }
 
 private:

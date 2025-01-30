@@ -17,8 +17,9 @@ public:
         return D<Data>()->content;
     }
 
-    void setContent(const QString& str) {
-        D<Data>()->content = str;
+    void setContent(const QString& content) {
+        if (this->content() == content) return;
+        D<Data>()->content = content;
     }
 
 private:
@@ -26,9 +27,9 @@ private:
         QString content;
 
         Data() = default;
-        Data(const Data& other)  // 明示的なコピーコンストラクタ
-            : AbstractGadget::Data<Data>(other),
-            content(other.content)
+        Data(const Data& other)
+            : AbstractGadget::Data<Data>(other)
+            , content(other.content)
         {}
     };
 };

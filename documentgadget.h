@@ -17,16 +17,18 @@ public:
         return D<Data>()->header;
     }
 
-    void setHeader(const TextGadget& newHeader) {
-        D<Data>()->header = newHeader;
+    void setHeader(const TextGadget& header) {
+        if (this->header() == header) return;
+        D<Data>()->header = header;
     }
 
     TextGadget body() const {
         return D<Data>()->body;
     }
 
-    void setBody(const TextGadget& newBody) {
-        D<Data>()->body = newBody;
+    void setBody(const TextGadget& body) {
+        if (this->body() == body) return;
+        D<Data>()->body = body;
     }
 
 private:

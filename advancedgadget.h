@@ -17,8 +17,9 @@ public:
         return D<Data>()->color;
     }
 
-    void setColor(const QColor& c) {
-        D<Data>()->color = c;
+    void setColor(const QColor& color) {
+        if (this->color() == color) return;
+        D<Data>()->color = color;
     }
 
 private:
