@@ -121,7 +121,7 @@ doc2.header().setContent("New Title");  // Original remains unchanged
 ## Build Instructions
 
 ### Prerequisites
-- Qt 5.15 or later
+- Qt 6.5 or later
 - C++17 compliant compiler
 - CMake 3.14 or later
 
