@@ -12,8 +12,8 @@ class CompositeGadget : public AbstractGadget
 
 public:
     CompositeGadget() : AbstractGadget(new Data) {}
-    CompositeGadget(const CompositeGadget &) = default;
-    CompositeGadget &operator=(const CompositeGadget &) = default;
+
+    const QMetaObject* metaObject() const override { return &staticMetaObject; }
 
     // Return by value to ensure proper copy-on-write
     AdvancedGadget advanced() const {

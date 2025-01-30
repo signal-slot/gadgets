@@ -11,6 +11,7 @@ class AdvancedGadget : public AbstractGadget
 
 public:
     AdvancedGadget() : AbstractGadget(new Data) {}
+    const QMetaObject* metaObject() const override { return &staticMetaObject; }
 
     QColor color() const {
         return D<Data>()->color;

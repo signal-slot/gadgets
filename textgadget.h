@@ -11,8 +11,7 @@ class TextGadget : public AbstractGadget
 
 public:
     TextGadget() : AbstractGadget(new Data) {}
-    TextGadget(const TextGadget&) = default;
-    TextGadget& operator=(const TextGadget&) = default;
+    const QMetaObject* metaObject() const override { return &staticMetaObject; }
 
     QString content() const {
         return D<Data>()->content;

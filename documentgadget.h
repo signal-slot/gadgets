@@ -11,8 +11,7 @@ class DocumentGadget : public AbstractGadget {
 
 public:
     DocumentGadget() : AbstractGadget(new Data) {}
-    DocumentGadget(const DocumentGadget&) = default;
-    DocumentGadget& operator=(const DocumentGadget&) = default;
+    const QMetaObject* metaObject() const override { return &staticMetaObject; }
 
     TextGadget header() const {
         return D<Data>()->header;

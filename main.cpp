@@ -1,8 +1,8 @@
 #include <QCoreApplication>
 #include <QDebug>
-#include "abstractgadget.h"
 #include "advancedgadget.h"
 #include "compositegadget.h"
+#include "documentgadget.h"
 
 int main(int argc, char *argv[])
 {
@@ -18,8 +18,8 @@ int main(int argc, char *argv[])
         AdvancedGadget adv2 = adv1;
         adv2.setColor(Qt::red);
 
-        qDebug() << "adv1 color:" << adv1.color(); // Should be blue
-        qDebug() << "adv2 color:" << adv2.color(); // Should be red
+        qDebug() << "adv1:" << adv1;
+        qDebug() << "adv2:" << adv2;
     }
 
     // Test composite gadget
@@ -41,10 +41,12 @@ int main(int argc, char *argv[])
         composite2.setAdvanced(advanced2);
 
         // Verify original is unchanged
-        qDebug() << "Original priority:" << composite1.priority();
-        qDebug() << "Original color:" << composite1.advanced().color().name();
-        qDebug() << "Modified color:" << composite2.advanced().color().name();
+        qDebug() << "Original:" << composite1;
+        qDebug() << "Modified:" << composite2;
     }
 
+    {
+        DocumentGadget doc1;
+    }
     return 0;
 }
