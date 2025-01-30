@@ -15,8 +15,11 @@ public:
 
     const QMetaObject* metaObject() const override { return &staticMetaObject; }
 
-    // Return by value to ensure proper copy-on-write
     AdvancedGadget advanced() const {
+        return d<Private>()->advanced;
+    }
+
+    AdvancedGadget &advanced() {
         return d<Private>()->advanced;
     }
 

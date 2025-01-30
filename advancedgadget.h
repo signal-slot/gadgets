@@ -17,6 +17,10 @@ public:
         return d<Private>()->color;
     }
 
+    QColor &color() {
+        return d<Private>()->color;
+    }
+
     void setColor(const QColor& color) {
         if (this->color() == color) return;
         d<Private>()->color = color;

@@ -17,6 +17,10 @@ public:
         return d<Private>()->content;
     }
 
+    QString &content() {
+        return d<Private>()->content;
+    }
+
     void setContent(const QString& content) {
         if (this->content() == content) return;
         d<Private>()->content = content;

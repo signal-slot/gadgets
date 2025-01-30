@@ -46,7 +46,20 @@ int main(int argc, char *argv[])
     }
 
     {
+        // コピー動作の確認
         DocumentGadget doc1;
+        doc1.header().setContent("Title");
+        doc1.body().setContent("Hello World");
+
+        // ディープコピー
+        DocumentGadget doc2 = doc1;
+
+        // コピーの変更
+        doc2.header().setContent("New Title");
+
+        // オリジナルは変更されない
+        qDebug() << doc1;
+        qDebug() << doc2;
     }
     return 0;
 }

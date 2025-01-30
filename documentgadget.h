@@ -17,12 +17,20 @@ public:
         return d<Private>()->header;
     }
 
+    TextGadget &header() {
+        return d<Private>()->header;
+    }
+
     void setHeader(const TextGadget& header) {
         if (this->header() == header) return;
         d<Private>()->header = header;
     }
 
     TextGadget body() const {
+        return d<Private>()->body;
+    }
+
+    TextGadget &body() {
         return d<Private>()->body;
     }
 
