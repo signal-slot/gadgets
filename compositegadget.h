@@ -41,13 +41,6 @@ private:
     struct Private : public AbstractGadget::Private {
         AdvancedGadget advanced;
         int priority = 0;
-
-        Private() = default;
-        Private(const Private& other)
-            : AbstractGadget::Private(other)
-            , advanced(other.advanced)
-            , priority(other.priority)
-        {}
     };
 };
 

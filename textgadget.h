@@ -32,12 +32,6 @@ public:
 protected:
     struct Private : public AbstractGadget::Private {
         QString content;
-
-        Private() = default;
-        Private(const Private& other)
-            : AbstractGadget::Private(other)
-            , content(other.content)
-        {}
     };
 };
 

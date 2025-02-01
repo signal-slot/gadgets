@@ -25,12 +25,6 @@ public:
 private:
     struct Private : public TextGadget::Private {
         QString format;
-
-        Private() = default;
-        Private(const Private& other)
-            : TextGadget::Private(other)
-            , format(other.format)
-        {}
     };
 };
 

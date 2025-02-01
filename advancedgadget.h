@@ -28,12 +28,6 @@ public:
 
 private:
     struct Private : public AbstractGadget::Private {
-        Private() = default;
-        Private(const Private &other)
-            : AbstractGadget::Private(other)
-            , color(other.color)
-        {}
-
         QColor color = Qt::black;
     };
 };
