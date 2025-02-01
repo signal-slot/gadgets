@@ -40,13 +40,13 @@ public:
     }
 
 private:
-    struct Private : public AbstractGadget::Private<Private> {
+    struct Private : public AbstractGadget::Private {
         TextGadget header;
         TextGadget body;
 
         Private() = default;
         Private(const Private& other)
-            : AbstractGadget::Private<Private>(other)
+            : AbstractGadget::Private(other)
             , header(other.header)
             , body(other.body)
         {}

@@ -27,10 +27,10 @@ public:
     }
 
 private:
-    struct Private : public AbstractGadget::Private<Private> {
+    struct Private : public AbstractGadget::Private {
         Private() = default;
         Private(const Private &other)
-            : AbstractGadget::Private<Private>(other)
+            : AbstractGadget::Private(other)
             , color(other.color)
         {}
 

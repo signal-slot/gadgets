@@ -19,6 +19,7 @@ add_executable(gadgets
   compositegadget.h
   textgadget.h
   documentgadget.h
+  specialtext.h
 )
 target_link_libraries(gadgets Qt6::Core Qt6::Gui)
 

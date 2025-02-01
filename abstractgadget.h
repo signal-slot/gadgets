@@ -12,8 +12,8 @@ class AbstractGadget
 {
     Q_GADGET
 protected:
-    class AbstractData;
-    explicit AbstractGadget(AbstractData *d) : data(d) {}
+    using Private = QSharedData;
+    explicit AbstractGadget(Private *d) : data(d) {}
 public:
     AbstractGadget() {}
     AbstractGadget(const AbstractGadget &) = default;
@@ -51,28 +51,14 @@ protected:
         // do detach() manually
         // Do not use d->ref or not call d->clone(). They detach implicitly.
         if (data.constData()->ref.loadRelaxed() != 1) {
-            data.reset(data.constData()->clone());
+            auto d = new DerivedData(*static_cast<const DerivedData*>(data.constData()));
+            data.reset(d);
         }
         return static_cast<DerivedData*>(data.data());
     }
 
-    class AbstractData : public QSharedData {
-    public:
-        AbstractData() = default;
-        AbstractData(const AbstractData &other) : QSharedData(other) {}
-        virtual AbstractData* clone() const { return nullptr; }
-    };
-
-    template<typename T>
-    class Private : public AbstractData {
-    public:
-        Private() : AbstractData() {}
-        Private(const Private &other) : AbstractData(other) {}
-        Private* clone() const override { return new T(*static_cast<const T*>(this)); }
-    };
-
 private:
-    QSharedDataPointer<AbstractData> data;
+    QSharedDataPointer<Private> data;
 
     template <typename T>
     friend auto operator<<(QDebug debug, const T &gadget) -> std::enable_if_t<std::is_base_of_v<AbstractGadget, T>, QDebug> {

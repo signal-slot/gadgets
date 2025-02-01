@@ -11,6 +11,9 @@ class TextGadget : public AbstractGadget
 
 public:
     TextGadget() : AbstractGadget(new Private) {}
+protected:
+    TextGadget(TextGadget::Private *d) : AbstractGadget(d) {}
+public:
     const QMetaObject* metaObject() const override { return &staticMetaObject; }
 
     QString content() const {
@@ -26,13 +29,13 @@ public:
         d<Private>()->content = content;
     }
 
-private:
-    struct Private : public AbstractGadget::Private<Private> {
+protected:
+    struct Private : public AbstractGadget::Private {
         QString content;
 
         Private() = default;
         Private(const Private& other)
-            : AbstractGadget::Private<Private>(other)
+            : AbstractGadget::Private(other)
             , content(other.content)
         {}
     };

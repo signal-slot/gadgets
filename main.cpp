@@ -3,6 +3,7 @@
 #include "advancedgadget.h"
 #include "compositegadget.h"
 #include "documentgadget.h"
+#include "specialtext.h"
 
 void debugRecursive(const AbstractGadget *gadget)
 {
@@ -85,6 +86,11 @@ int main(int argc, char *argv[])
         doc.header().setContent("Title");
         doc.body().setContent("Hello World");
         debugRecursive(&doc);
+
+        SpecialText sp;
+        sp.setContent("base class");
+        sp.setFormat("sub class");
+        qDebug() << sp;
     }
     return 0;
 }
