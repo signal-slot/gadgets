@@ -10,6 +10,7 @@
 
 class AbstractGadget
 {
+    Q_GADGET
 protected:
     class AbstractData;
     explicit AbstractGadget(AbstractData *d) : data(d) {}
@@ -90,5 +91,7 @@ private:
         return debug;
     }
 };
+
+Q_DECLARE_METATYPE(AbstractGadget)
 
 #endif // ABSTRACTGADGET_H

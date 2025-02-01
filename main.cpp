@@ -4,6 +4,25 @@
 #include "compositegadget.h"
 #include "documentgadget.h"
 
+void debugRecursive(const AbstractGadget *gadget)
+{
+    const auto mo = gadget->metaObject();
+    for (int i = 0; i < mo->propertyCount(); i++) {
+        const auto property = mo->property(i);
+        const auto type = property.typeName();
+        const auto name = property.name();
+        const auto value = property.readOnGadget(gadget);
+        if (value.canConvert<AbstractGadget>()) {
+            const auto *gadget = reinterpret_cast<const AbstractGadget *>(value.constData());
+            qDebug() << type << name << gadget;
+            debugRecursive(gadget);
+        } else {
+            qDebug() << type << name << value;
+        }
+    }
+};
+
+
 int main(int argc, char *argv[])
 {
     qSetMessagePattern("[%{if-debug}D%{endif}%{if-info}I%{endif}%{if-warning}W%{endif}%{if-critical}C%{endif}%{if-fatal}F%{endif}] %{function}:%{line} - %{message}");
@@ -46,20 +65,26 @@ int main(int argc, char *argv[])
     }
 
     {
-        // コピー動作の確認
         DocumentGadget doc1;
         doc1.header().setContent("Title");
         doc1.body().setContent("Hello World");
 
-        // ディープコピー
         DocumentGadget doc2 = doc1;
 
-        // コピーの変更
         doc2.header().setContent("New Title");
 
-        // オリジナルは変更されない
         qDebug() << doc1;
         qDebug() << doc2;
+    }
+
+    {
+        CompositeGadget composite;
+        debugRecursive(&composite);
+
+        DocumentGadget doc;
+        doc.header().setContent("Title");
+        doc.body().setContent("Hello World");
+        debugRecursive(&doc);
     }
     return 0;
 }
