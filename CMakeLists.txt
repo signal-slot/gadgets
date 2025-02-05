@@ -15,6 +15,7 @@ find_package(Qt6 REQUIRED COMPONENTS Core Test)
 add_executable(gadgets
   main.cpp
   abstractgadget.h
+  abstractgadget.cpp
 
 
 

@@ -28,6 +28,7 @@ private slots:
     void basic();
     void child();
     void children();
+    void fromToJsonObject();
 };
 
 class Gadget : public AbstractGadget
@@ -78,12 +79,35 @@ private:
     };
 };
 
-class ParentWithChild : public AbstractGadget
+class Parent : public AbstractGadget
+{
+    Q_GADGET
+    Q_PROPERTY(QString lastName READ lastName WRITE setLastName)
+protected:
+    Parent(Private *d) : AbstractGadget(d) {}
+public:
+    const QMetaObject* metaObject() const override { return &staticMetaObject; }
+
+    QString lastName() const { return d<Private>()->lastName; }
+    void setLastName(const QString &lastName) {
+        d<Private>()->lastName = lastName;
+    }
+protected:
+    struct Private : public AbstractGadget::Private {
+        QString lastName;
+
+        Private *clone() const override { return new Private(*this); }
+    };
+};
+
+class ParentWithChild : public Parent
 {
     Q_GADGET
     Q_PROPERTY(Child child READ child WRITE setChild)
 public:
-    ParentWithChild() : AbstractGadget(new Private) {}
+    ParentWithChild() : Parent(new Private) {
+        qRegisterMetaType<Child>();
+    }
     const QMetaObject* metaObject() const override { return &staticMetaObject; }
 
     Child child() const { return d<Private>()->child; }
@@ -91,7 +115,7 @@ public:
         d<Private>()->child = child;
     }
 private:
-    struct Private : public AbstractGadget::Private {
+    struct Private : public Parent::Private {
         Child child;
 
         Private *clone() const override { return new Private(*this); }
@@ -109,12 +133,14 @@ void tst_Gadget::child()
     QCOMPARE(parent.child(), child);
 }
 
-class ParentWithChildren : public AbstractGadget
+class ParentWithChildren : public Parent
 {
     Q_GADGET
     Q_PROPERTY(QList<Child> children READ children WRITE setChildren)
 public:
-    ParentWithChildren() : AbstractGadget(new Private) {}
+    ParentWithChildren() : Parent(new Private) {
+        qRegisterMetaType<Child>();
+    }
     const QMetaObject* metaObject() const override { return &staticMetaObject; }
 
     QList<Child> children() const { return d<Private>()->children; }
@@ -122,7 +148,7 @@ public:
         d<Private>()->children = children;
     }
 private:
-    struct Private : public AbstractGadget::Private {
+    struct Private : public Parent::Private {
         QList<Child> children;
 
         Private *clone() const override { return new Private(*this); }
@@ -141,6 +167,24 @@ void tst_Gadget::children()
     parent.setChildren(children);
 
     QCOMPARE(parent.children(), children);
+}
+
+void tst_Gadget::fromToJsonObject()
+{
+    const auto jsonString = R"( { "lastName": "Smith", "children": [ { "value": 2 }, { "value": 3 } ] } )";
+    QJsonParseError error;
+    const auto jsonDocument = QJsonDocument::fromJson(jsonString, &error);
+    QVERIFY(!error.error);
+
+    ParentWithChildren parent;
+    QVERIFY(parent.fromJsonObject(jsonDocument.object()));
+
+    QCOMPARE(parent.lastName(), "Smith");
+
+    QCOMPARE(parent.children().length(), 2);
+
+    QCOMPARE(parent.children().at(0).value(), 2);
+    QCOMPARE(parent.children().at(1).value(), 3);
 }
 
 QTEST_MAIN(tst_Gadget)

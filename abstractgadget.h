@@ -2,6 +2,7 @@
 #define ABSTRACTGADGET_H
 
 #include <QtCore/QDebug>
+#include <QtCore/QJsonObject>
 #include <QtCore/QMetaProperty>
 #include <QtCore/QObject>
 #include <QtCore/QSharedData>
@@ -18,15 +19,19 @@ protected:
         virtual ~Private() = default;
         virtual Private *clone() const { qFatal(); return nullptr; };
     };
-    explicit AbstractGadget(Private *d) : data(d) {}
 
 public:
     AbstractGadget() {}
-    AbstractGadget(const AbstractGadget &) = default;
+protected:
+    explicit AbstractGadget(Private *d) : data(d) {}
+public:
     virtual ~AbstractGadget() = default;
+
     AbstractGadget &operator=(const AbstractGadget &) = default;
 
-    virtual const QMetaObject* metaObject() const = 0;
+    virtual const QMetaObject* metaObject() const { return &staticMetaObject; }
+    virtual bool fromJsonObject(const QJsonObject &object);
+    virtual QJsonObject toJsonObject() const;
 
     template <class T>
     bool operator!=(const T &other) const {
