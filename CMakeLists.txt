@@ -9,19 +9,19 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(QT NAMES Qt6 REQUIRED COMPONENTS Core Gui)
-find_package(Qt6 REQUIRED COMPONENTS Core Gui)
+find_package(QT NAMES Qt6 REQUIRED COMPONENTS Core Test)
+find_package(Qt6 REQUIRED COMPONENTS Core Test)
 
 add_executable(gadgets
   main.cpp
   abstractgadget.h
-  advancedgadget.h
-  compositegadget.h
-  textgadget.h
-  documentgadget.h
-  specialtext.h
+
+
+
+
+
 )
-target_link_libraries(gadgets Qt6::Core Qt6::Gui)
+target_link_libraries(gadgets Qt6::Core Qt6::Test)
 
 include(GNUInstallDirs)
 install(TARGETS gadgets

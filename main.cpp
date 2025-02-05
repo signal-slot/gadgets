@@ -1,9 +1,6 @@
-#include <QCoreApplication>
+#include <QtTest/QtTest>
 #include <QDebug>
-#include "advancedgadget.h"
-#include "compositegadget.h"
-#include "documentgadget.h"
-#include "specialtext.h"
+#include "abstractgadget.h"
 
 void debugRecursive(const AbstractGadget *gadget)
 {
@@ -23,74 +20,128 @@ void debugRecursive(const AbstractGadget *gadget)
     }
 };
 
-
-int main(int argc, char *argv[])
+class tst_Gadget : public QObject
 {
-    qSetMessagePattern("[%{if-debug}D%{endif}%{if-info}I%{endif}%{if-warning}W%{endif}%{if-critical}C%{endif}%{if-fatal}F%{endif}] %{function}:%{line} - %{message}");
-    QCoreApplication app(argc, argv);
-    
-    // Test basic gadget functionality
-    {
-        AdvancedGadget adv1;
-        adv1.setColor(Qt::blue);
+    Q_OBJECT
 
-        // Implicit sharing test
-        AdvancedGadget adv2 = adv1;
-        adv2.setColor(Qt::red);
+private slots:
+    void basic();
+    void child();
+    void children();
+};
 
-        qDebug() << "adv1:" << adv1;
-        qDebug() << "adv2:" << adv2;
+class Gadget : public AbstractGadget
+{
+    Q_GADGET
+    Q_PROPERTY(int value READ value WRITE setValue)
+public:
+    Gadget() : AbstractGadget(new Private) {}
+    const QMetaObject* metaObject() const override { return &staticMetaObject; }
+
+    int value() const { return d<Private>()->value; }
+    void setValue(int value) {
+        d<Private>()->value = value;
     }
+private:
+    struct Private : public AbstractGadget::Private {
+        int value = 0;
 
-    // Test composite gadget
-    {
-        CompositeGadget composite1;
-        composite1.setPriority(100);
+        Private *clone() const override { return new Private(*this); }
+    };
+};
 
-        // Set up initial advanced gadget
-        AdvancedGadget advanced1;
-        advanced1.setColor(Qt::blue);
-        composite1.setAdvanced(advanced1);
-
-        // Create a copy of the composite
-        CompositeGadget composite2 = composite1;
-
-        // Modify the copy's advanced gadget
-        AdvancedGadget advanced2 = composite2.advanced();
-        advanced2.setColor(Qt::red);
-        composite2.setAdvanced(advanced2);
-
-        // Verify original is unchanged
-        qDebug() << "Original:" << composite1;
-        qDebug() << "Modified:" << composite2;
-    }
-
-    {
-        DocumentGadget doc1;
-        doc1.header().setContent("Title");
-        doc1.body().setContent("Hello World");
-
-        DocumentGadget doc2 = doc1;
-
-        doc2.header().setContent("New Title");
-
-        qDebug() << doc1;
-        qDebug() << doc2;
-    }
-
-    {
-        CompositeGadget composite;
-        debugRecursive(&composite);
-
-        DocumentGadget doc;
-        doc.header().setContent("Title");
-        doc.body().setContent("Hello World");
-        debugRecursive(&doc);
-
-        SpecialText sp;
-        sp.setContent("base class");
-        sp.setFormat("sub class");
-        qDebug() << sp;
-    }
-    return 0;
+void tst_Gadget::basic()
+{
+    int value = 1234;
+    Gadget gadget;
+    gadget.setValue(value);
+    QCOMPARE(gadget.value(), value);
 }
+
+class Child : public AbstractGadget
+{
+    Q_GADGET
+    Q_PROPERTY(int value READ value WRITE setValue)
+public:
+    Child() : AbstractGadget(new Private) {}
+    const QMetaObject* metaObject() const override { return &staticMetaObject; }
+
+    int value() const { return d<Private>()->value; }
+    void setValue(int value) {
+        d<Private>()->value = value;
+    }
+private:
+    struct Private : public AbstractGadget::Private {
+        int value = 0;
+
+        Private *clone() const override { return new Private(*this); }
+    };
+};
+
+class ParentWithChild : public AbstractGadget
+{
+    Q_GADGET
+    Q_PROPERTY(Child child READ child WRITE setChild)
+public:
+    ParentWithChild() : AbstractGadget(new Private) {}
+    const QMetaObject* metaObject() const override { return &staticMetaObject; }
+
+    Child child() const { return d<Private>()->child; }
+    void setChild(const Child &child) {
+        d<Private>()->child = child;
+    }
+private:
+    struct Private : public AbstractGadget::Private {
+        Child child;
+
+        Private *clone() const override { return new Private(*this); }
+    };
+};
+
+void tst_Gadget::child()
+{
+    ParentWithChild parent;
+
+    Child child;
+    child.setValue(1);
+    parent.setChild(child);
+
+    QCOMPARE(parent.child(), child);
+}
+
+class ParentWithChildren : public AbstractGadget
+{
+    Q_GADGET
+    Q_PROPERTY(QList<Child> children READ children WRITE setChildren)
+public:
+    ParentWithChildren() : AbstractGadget(new Private) {}
+    const QMetaObject* metaObject() const override { return &staticMetaObject; }
+
+    QList<Child> children() const { return d<Private>()->children; }
+    void setChildren(const QList<Child> &children) {
+        d<Private>()->children = children;
+    }
+private:
+    struct Private : public AbstractGadget::Private {
+        QList<Child> children;
+
+        Private *clone() const override { return new Private(*this); }
+    };
+};
+
+void tst_Gadget::children()
+{
+    ParentWithChildren parent;
+
+    Child child1;
+    child1.setValue(1);
+    Child child2;
+    child2.setValue(2);
+    QList<Child> children { child1, child2 };
+    parent.setChildren(children);
+
+    QCOMPARE(parent.children(), children);
+}
+
+QTEST_MAIN(tst_Gadget)
+#include "main.moc"

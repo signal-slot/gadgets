@@ -12,8 +12,14 @@ class AbstractGadget
 {
     Q_GADGET
 protected:
-    using Private = QSharedData;
+    class Private : public QSharedData
+    {
+    public:
+        virtual ~Private() = default;
+        virtual Private *clone() const { qFatal(); return nullptr; };
+    };
     explicit AbstractGadget(Private *d) : data(d) {}
+
 public:
     AbstractGadget() {}
     AbstractGadget(const AbstractGadget &) = default;
@@ -51,7 +57,7 @@ protected:
         // do detach() manually
         // Do not use d->ref or not call d->clone(). They detach implicitly.
         if (data.constData()->ref.loadRelaxed() != 1) {
-            auto d = new DerivedData(*static_cast<const DerivedData*>(data.constData()));
+            auto d = static_cast<DerivedData *>(data.constData()->clone());
             data.reset(d);
         }
         return static_cast<DerivedData*>(data.data());
