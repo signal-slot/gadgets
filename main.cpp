@@ -147,6 +147,36 @@ public:
     void setChildren(const QList<Child> &children) {
         d<Private>()->children = children;
     }
+
+    bool fromJsonObject(const QJsonObject &object) override {
+        auto object2 = object;
+        if (object2.contains("children")) {
+            const auto array = object2.take("children").toArray();
+            for (const auto &value : array) {
+                Child child;
+                if (child.fromJsonObject(value.toObject())) {
+                    d<Private>()->children.append(child);
+                } else {
+                    return false;
+                }
+            }
+        }
+        return Parent::fromJsonObject(object2);
+    }
+
+    QJsonObject toJsonObject() const override {
+        QJsonObject ret = Parent::toJsonObject();
+        const auto children = d<Private>()->children;
+        if (!children.isEmpty()) {
+            QJsonArray array;
+            for (const auto &child : children) {
+                array.append(child.toJsonObject());
+            }
+            ret.insert("children", array);
+        }
+        return ret;
+    }
+
 private:
     struct Private : public Parent::Private {
         QList<Child> children;

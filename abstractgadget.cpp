@@ -63,16 +63,8 @@ bool AbstractGadget::fromJsonObject(const QJsonObject &object)
                             }
                         }
                     } else {
-
-                        QList<AbstractGadget> *list = reinterpret_cast<QList<AbstractGadget> *>(propertyValue.data());
-                        const auto array = value.toArray();
-                        for (const auto &v : array) {
-                            AbstractGadget base;
-                            auto *sub = static_cast<AbstractGadget *>(mt.construct(&base));
-                            if (!sub->fromJsonObject(v.toObject()))
-                                return false;
-                            list->append(*sub);
-                        }
+                        qWarning() << "handle" << typeName << "in sub class";
+                        continue;
                     }
                     if (!property.writeOnGadget(this, propertyValue))
                         qFatal() << this;
@@ -177,22 +169,7 @@ QJsonObject AbstractGadget::toJsonObject() const
                         if (!found)
                             qFatal() << typeName;
                     } else {
-                        if (QMetaType::canConvert(mt, QMetaType::fromType<AbstractGadget>())) {
-                            qDebug() << value;
-                            QVariantList list = value.toList();
-                            qDebug() << list;
-                            for (int j = 0; j < list.size(); j++) {
-                                qDebug() << j << list.at(j) << list.at(j).canConvert<AbstractGadget>();
-                                const auto v = list.at(j).value<AbstractGadget>();
-                                qDebug() << v;
-                                const auto object = v.toJsonObject();
-                                qDebug() << object;
-                                list.replace(j, object);
-                            }
-                            value = list;
-                        } else {
-                            value = value.toList();
-                        }
+                        // TODO: handle other types
                     }
                 }
             } else {
