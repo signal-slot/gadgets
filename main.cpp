@@ -2,24 +2,6 @@
 #include <QDebug>
 #include "abstractgadget.h"
 
-void debugRecursive(const AbstractGadget *gadget)
-{
-    const auto mo = gadget->metaObject();
-    for (int i = 0; i < mo->propertyCount(); i++) {
-        const auto property = mo->property(i);
-        const auto type = property.typeName();
-        const auto name = property.name();
-        const auto value = property.readOnGadget(gadget);
-        if (value.canConvert<AbstractGadget>()) {
-            const auto *gadget = reinterpret_cast<const AbstractGadget *>(value.constData());
-            qDebug() << type << name << gadget;
-            debugRecursive(gadget);
-        } else {
-            qDebug() << type << name << value;
-        }
-    }
-};
-
 class tst_Gadget : public QObject
 {
     Q_OBJECT
@@ -148,35 +130,6 @@ public:
         d<Private>()->children = children;
     }
 
-    bool fromJsonObject(const QJsonObject &object) override {
-        auto object2 = object;
-        if (object2.contains("children")) {
-            const auto array = object2.take("children").toArray();
-            for (const auto &value : array) {
-                Child child;
-                if (child.fromJsonObject(value.toObject())) {
-                    d<Private>()->children.append(child);
-                } else {
-                    return false;
-                }
-            }
-        }
-        return Parent::fromJsonObject(object2);
-    }
-
-    QJsonObject toJsonObject() const override {
-        QJsonObject ret = Parent::toJsonObject();
-        const auto children = d<Private>()->children;
-        if (!children.isEmpty()) {
-            QJsonArray array;
-            for (const auto &child : children) {
-                array.append(child.toJsonObject());
-            }
-            ret.insert("children", array);
-        }
-        return ret;
-    }
-
 private:
     struct Private : public Parent::Private {
         QList<Child> children;
@@ -199,25 +152,80 @@ void tst_Gadget::children()
     QCOMPARE(parent.children(), children);
 }
 
+class Types : public AbstractGadget
+{
+    Q_GADGET
+    Q_PROPERTY(bool boolean READ boolean WRITE setBoolean)
+    Q_PROPERTY(QList<bool> booleans READ booleans WRITE setBooleans)
+    Q_PROPERTY(int integer READ integer WRITE setInteger)
+    Q_PROPERTY(QList<int> integers READ integers WRITE setIntegers)
+    Q_PROPERTY(QByteArray data READ data WRITE setData)
+    Q_PROPERTY(QByteArrayList datas READ datas WRITE setDatas)
+    Q_PROPERTY(QString string READ string WRITE setString)
+    Q_PROPERTY(QStringList strings READ strings WRITE setStrings)
+    Q_PROPERTY(Child child READ child WRITE setChild)
+    Q_PROPERTY(QList<Child> children READ children WRITE setChildren)
+public:
+    Types() : AbstractGadget(new Private) {}
+    const QMetaObject* metaObject() const override { return &staticMetaObject; }
+
+#define ACCESSOR(type, Type, name, Name) \
+    type name() const { return d<Private>()->name; } \
+    void set##Name(Type name) { \
+        d<Private>()->name = name; \
+    }
+
+    ACCESSOR(bool, bool, boolean, Boolean)
+    ACCESSOR(QList<bool>, const QList<bool>&, booleans, Booleans)
+    ACCESSOR(int, int, integer, Integer)
+    ACCESSOR(QList<int>, const QList<int>&, integers, Integers)
+    ACCESSOR(QByteArray, const QByteArray&, data, Data)
+    ACCESSOR(QByteArrayList, const QByteArrayList&, datas, Datas)
+    ACCESSOR(QString, const QString&, string, String)
+    ACCESSOR(QStringList, const QStringList&, strings, Strings)
+    ACCESSOR(Child, const Child&, child, Child)
+    ACCESSOR(QList<Child>, const QList<Child>&, children, Children)
+
+private:
+    struct Private : public AbstractGadget::Private {
+        bool boolean = false;
+        QList<bool> booleans;
+        int integer = 0;
+        QList<int> integers;
+        QByteArray data;
+        QByteArrayList datas;
+        QString string;
+        QStringList strings;
+        Child child;
+        QList<Child> children;
+
+        Private *clone() const override { return new Private(*this); }
+    };
+};
+
 void tst_Gadget::fromToJsonObject()
 {
-    const auto jsonString = R"( { "lastName": "Smith", "children": [ { "value": 2 }, { "value": 3 } ] } )";
+    const auto jsonString = R"({
+        "boolean": true,
+        "booleans": [true, false, true],
+        "integer": 1,
+        "integers": [1, 2, 3, 4, 5],
+        "data": "data",
+        "datas": ["data1", "data2", "data3"],
+        "string": "string",
+        "strings": ["string1", "string2", "string3"],
+        "child": { "value": 1 },
+        "children": [ { "value": 2 }, { "value": 3 } ]
+    } )";
     QJsonParseError error;
     const auto jsonDocument = QJsonDocument::fromJson(jsonString, &error);
     QVERIFY(!error.error);
     const auto jsonObject = jsonDocument.object();
 
-    ParentWithChildren parent;
-    QVERIFY(parent.fromJsonObject(jsonObject));
-
-    QCOMPARE(parent.lastName(), "Smith");
-
-    QCOMPARE(parent.children().length(), 2);
-
-    QCOMPARE(parent.children().at(0).value(), 2);
-    QCOMPARE(parent.children().at(1).value(), 3);
-
-    QCOMPARE(parent.toJsonObject(), jsonObject);
+    Types types;
+    QVERIFY(types.fromJsonObject(jsonObject));
+    qDebug() << types;
+    QCOMPARE(types.toJsonObject(), jsonObject);
 }
 
 QTEST_MAIN(tst_Gadget)

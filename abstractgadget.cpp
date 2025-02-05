@@ -30,21 +30,43 @@ bool AbstractGadget::fromJsonObject(const QJsonObject &object)
             auto propertyValue = property.readOnGadget(this);
             // qDebug() << "Array" << propertyName << propertyValue << value.toArray();
             QByteArray typeName = property.typeName();
-            if (typeName == "QStringList"_ba) {
-                QStringList list;
-                for (const auto &str : array) {
-                    Q_ASSERT(str.isString());
-                    list.append(str.toString());
-                }
-                if (!property.writeOnGadget(this, list))
-                    qFatal() << this;
-
-            } else if (typeName.startsWith("QList<"_ba) && typeName.endsWith(">")) {
+            if (typeName.startsWith('Q') && typeName.endsWith("List"_ba)) {
+                typeName = typeName.chopped(4);
+            } else if (typeName.startsWith("QList<"_ba) && typeName.endsWith('>')) {
                 typeName = typeName.mid(6).chopped(1);
-                const auto mt = QMetaType::fromName(typeName);
-                if (!mt.isValid()) {
-                    qWarning() << "Unknown type" << typeName << propertyValue;
-                } else {
+            } else {
+                qFatal() << typeName;
+            }
+            const auto mt = QMetaType::fromName(typeName);
+            if (!mt.isValid()) {
+                qWarning() << "Unknown type" << typeName << propertyValue;
+            } else {
+                switch (mt.id()) {
+                case QMetaType::Bool: {
+                    QList<bool> *list = reinterpret_cast<QList<bool> *>(propertyValue.data());
+                    for (const auto &v : array)
+                        list->append(v.toBool());
+                    break; }
+                case QMetaType::Int: {
+                    QList<int> *list = reinterpret_cast<QList<int> *>(propertyValue.data());
+                    for (const auto &v : array)
+                        list->append(v.toInt());
+                    break; }
+                case QMetaType::QByteArray: {
+                    QList<QByteArray> *list = reinterpret_cast<QList<QByteArray> *>(propertyValue.data());
+                    for (const auto &v : array) {
+                        Q_ASSERT(v.isString());
+                        list->append(v.toString().toLatin1());
+                    }
+                    break; }
+                case QMetaType::QString: {
+                    QList<QString> *list = reinterpret_cast<QList<QString> *>(propertyValue.data());
+                    for (const auto &v : array) {
+                        Q_ASSERT(v.isString());
+                        list->append(v.toString());
+                    }
+                    break; }
+                default: {
                     const auto mo = mt.metaObject();
                     if (mt.flags() & QMetaType::IsEnumeration) {
                         for (int i = 0; i < mo->enumeratorCount(); i++) {
@@ -63,14 +85,21 @@ bool AbstractGadget::fromJsonObject(const QJsonObject &object)
                             }
                         }
                     } else {
-                        qWarning() << "handle" << typeName << "in sub class";
-                        continue;
+                        QList<AbstractGadget> *list = reinterpret_cast<QList<AbstractGadget> *>(propertyValue.data());
+                        for (const auto &v : array) {
+                            AbstractGadget base;
+                            auto *sub = static_cast<AbstractGadget *>(mt.construct(&base));
+                            if (!sub->fromJsonObject(v.toObject()))
+                                return false;
+                            list->append(*sub);
+                        }
                     }
-                    if (!property.writeOnGadget(this, propertyValue))
-                        qFatal() << this;
+                    break; }
                 }
-            } else {
-                qFatal() << typeName;
+
+
+                if (!property.writeOnGadget(this, propertyValue))
+                    qFatal() << this;
             }
             break; }
         case QJsonValue::Object: {
@@ -137,43 +166,40 @@ QJsonObject AbstractGadget::toJsonObject() const
         const auto mp = mo->property(i);
         const auto name = QString::fromLatin1(mp.name());
         auto value = mp.readOnGadget(this);
-        if (value.canConvert<AbstractGadget>()) {
-            const auto *gadget = reinterpret_cast<const AbstractGadget *>(value.constData());
-            const auto object = gadget->toJsonObject();
-            value = object.toVariantMap();
-        } else {
-            auto typeName = QByteArray(mp.typeName());
-            if (typeName.startsWith("QList<") && typeName.endsWith('>')) {
-                typeName = typeName.mid(6).chopped(1);
-                const auto mt = QMetaType::fromName(typeName);
-                if (!mt.isValid()) {
-                    qWarning() << typeName << " unknown type" << value;
-                    value = value.toList();
-                } else {
-                    const auto mo = mt.metaObject();
-                    if (mt.flags() & QMetaType::IsEnumeration) {
-                        bool found = false;
-                        for (int i = 0; i < mo->enumeratorCount(); i++) {
-                            const auto me = mo->enumerator(i);
-                            if (typeName == QByteArray(mo->className()) + "::" + me.enumName()) {
-                                QVariantList list = value.toList();
-                                for (int j = 0; j < list.size(); j++) {
-                                    const auto v = list.at(j).toInt();
-                                    list.replace(j, QString::fromUtf8(me.valueToKey(v)));
-                                }
-                                value = list;
-                                found = true;
-                                break;
-                            }
+        switch (value.typeId()) {
+        case QMetaType::Bool:
+        case QMetaType::Int:
+        case QMetaType::QString:
+        case QMetaType::QJsonObject:
+            break;
+        case QMetaType::QByteArray:
+            value = QString::fromUtf8(value.toByteArray());
+            break;
+        default:
+            if (value.canConvert<AbstractGadget>()) {
+                const auto *gadget = reinterpret_cast<const AbstractGadget *>(value.constData());
+                const auto object = gadget->toJsonObject();
+                value = object.toVariantMap();
+            } else if (value.canConvert<QVariantList>()) {
+                QJsonArray array;
+                const QVariantList list = value.toList();
+                for (const auto &value : list) {
+                    switch (value.typeId()) {
+                    case QMetaType::QByteArray:
+                        array.append(QString::fromUtf8(value.toByteArray()));
+                        break;
+                    default:
+                        if (value.canConvert<AbstractGadget>()) {
+                            const auto gadget = reinterpret_cast<const AbstractGadget *>(value.constData());
+                            const auto object = gadget->toJsonObject();
+                            array.append(object);
+                        } else {
+                            array.append(value.toJsonValue());
                         }
-                        if (!found)
-                            qFatal() << typeName;
-                    } else {
-                        // TODO: handle other types
+                        break;
                     }
                 }
-            } else {
-                value = QJsonValue::fromVariant(value);
+                value = array;
             }
         }
         ret.insert(name, value.toJsonValue());
