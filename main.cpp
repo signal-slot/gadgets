@@ -175,9 +175,10 @@ void tst_Gadget::fromToJsonObject()
     QJsonParseError error;
     const auto jsonDocument = QJsonDocument::fromJson(jsonString, &error);
     QVERIFY(!error.error);
+    const auto jsonObject = jsonDocument.object();
 
     ParentWithChildren parent;
-    QVERIFY(parent.fromJsonObject(jsonDocument.object()));
+    QVERIFY(parent.fromJsonObject(jsonObject));
 
     QCOMPARE(parent.lastName(), "Smith");
 
@@ -185,6 +186,8 @@ void tst_Gadget::fromToJsonObject()
 
     QCOMPARE(parent.children().at(0).value(), 2);
     QCOMPARE(parent.children().at(1).value(), 3);
+
+    QCOMPARE(parent.toJsonObject(), jsonObject);
 }
 
 QTEST_MAIN(tst_Gadget)
