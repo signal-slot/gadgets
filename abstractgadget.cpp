@@ -164,9 +164,10 @@ QJsonObject AbstractGadget::toJsonObject() const
     const auto indices = requiredOrModifiedPropertyIndices(this);
     for (int i : indices) {
         const auto mp = mo->property(i);
+        const auto mt = mp.metaType();
         const auto name = QString::fromLatin1(mp.name());
         auto value = mp.readOnGadget(this);
-        switch (value.typeId()) {
+        switch (mt.id()) {
         case QMetaType::Bool:
         case QMetaType::Int:
         case QMetaType::QString:
@@ -176,7 +177,17 @@ QJsonObject AbstractGadget::toJsonObject() const
             value = QString::fromUtf8(value.toByteArray());
             break;
         default:
-            if (value.canConvert<AbstractGadget>()) {
+            if (mt.flags() & QMetaType::IsEnumeration) {
+                const auto mo = mt.metaObject();
+                for (int i = 0; i < mo->enumeratorCount(); i++) {
+                    const auto me = mo->enumerator(i);
+                    if (mt.name() == QByteArray(mo->className()) + "::" + me.enumName()) {
+                        const auto v = value.toInt();
+                        value = QString::fromUtf8(me.valueToKey(v));
+                        break;
+                    }
+                }
+            } else if (value.canConvert<AbstractGadget>()) {
                 const auto *gadget = reinterpret_cast<const AbstractGadget *>(value.constData());
                 const auto object = gadget->toJsonObject();
                 value = object.toVariantMap();
@@ -184,12 +195,23 @@ QJsonObject AbstractGadget::toJsonObject() const
                 QJsonArray array;
                 const QVariantList list = value.toList();
                 for (const auto &value : list) {
-                    switch (value.typeId()) {
+                    const QMetaType mt = value.metaType();
+                    switch (mt.id()) {
                     case QMetaType::QByteArray:
                         array.append(QString::fromUtf8(value.toByteArray()));
                         break;
                     default:
-                        if (value.canConvert<AbstractGadget>()) {
+                        if (mt.flags() & QMetaType::IsEnumeration) {
+                            const auto mo = mt.metaObject();
+                            for (int i = 0; i < mo->enumeratorCount(); i++) {
+                                const auto me = mo->enumerator(i);
+                                if (mt.name() == QByteArray(mo->className()) + "::" + me.enumName()) {
+                                    const auto v = value.toInt();
+                                    array.append(QString::fromUtf8(me.valueToKey(v)));
+                                    break;
+                                }
+                            }
+                        } else if (value.canConvert<AbstractGadget>()) {
                             const auto gadget = reinterpret_cast<const AbstractGadget *>(value.constData());
                             const auto object = gadget->toJsonObject();
                             array.append(object);

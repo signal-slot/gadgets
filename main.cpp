@@ -163,9 +163,20 @@ class Types : public AbstractGadget
     Q_PROPERTY(QByteArrayList datas READ datas WRITE setDatas)
     Q_PROPERTY(QString string READ string WRITE setString)
     Q_PROPERTY(QStringList strings READ strings WRITE setStrings)
+    Q_PROPERTY(QJsonObject object READ object WRITE setObject)
+    Q_PROPERTY(Enum enumeration READ enumeration WRITE setEnumeration)
+    Q_PROPERTY(QList<Enum> enumerations READ enumerations WRITE setEnumerations)
     Q_PROPERTY(Child child READ child WRITE setChild)
     Q_PROPERTY(QList<Child> children READ children WRITE setChildren)
 public:
+    enum class Enum {
+        info,
+        debug,
+        warning,
+        fatal,
+    };
+    Q_ENUM(Enum)
+
     Types() : AbstractGadget(new Private) {}
     const QMetaObject* metaObject() const override { return &staticMetaObject; }
 
@@ -183,6 +194,9 @@ public:
     ACCESSOR(QByteArrayList, const QByteArrayList&, datas, Datas)
     ACCESSOR(QString, const QString&, string, String)
     ACCESSOR(QStringList, const QStringList&, strings, Strings)
+    ACCESSOR(QJsonObject, const QJsonObject&, object, Object)
+    ACCESSOR(Enum, const Enum&, enumeration, Enumeration)
+    ACCESSOR(QList<Enum>, const QList<Enum>&, enumerations, Enumerations)
     ACCESSOR(Child, const Child&, child, Child)
     ACCESSOR(QList<Child>, const QList<Child>&, children, Children)
 
@@ -196,6 +210,9 @@ private:
         QByteArrayList datas;
         QString string;
         QStringList strings;
+        QJsonObject object;
+        Enum enumeration = Enum::info;
+        QList<Enum> enumerations;
         Child child;
         QList<Child> children;
 
@@ -214,6 +231,9 @@ void tst_Gadget::fromToJsonObject()
         "datas": ["data1", "data2", "data3"],
         "string": "string",
         "strings": ["string1", "string2", "string3"],
+        "object": { "key": "value" },
+        "enumeration": "debug",
+        "enumerations": ["info", "warning"],
         "child": { "value": 1 },
         "children": [ { "value": 2 }, { "value": 3 } ]
     } )";
@@ -224,7 +244,6 @@ void tst_Gadget::fromToJsonObject()
 
     Types types;
     QVERIFY(types.fromJsonObject(jsonObject));
-    qDebug() << types;
     QCOMPARE(types.toJsonObject(), jsonObject);
 }
 
