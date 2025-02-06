@@ -4,25 +4,26 @@ A sophisticated C++ implementation demonstrating Qt's implicit sharing pattern t
 
 ## Overview
 
-This project implements a hierarchy of gadget classes that leverage Qt's implicit sharing capabilities for efficient memory usage and copy-on-write semantics. The implementation provides a robust foundation for creating complex data structures with automatic memory management and optimal performance characteristics.
+This project implements a hierarchy of gadget classes that leverage Qt's implicit sharing capabilities for efficient memory usage and copy-on-write semantics. The implementation includes a comprehensive test suite demonstrating various use cases and supported data types.
 
 ### Perfect for Complex Data Structures
 
 This implementation is especially useful when you need to:
-- Create strongly-typed C++ classes to represent complex JSON structures
+- Create strongly-typed C++ classes with Qt's property system
 - Handle nested data structures with efficient memory usage
 - Implement copy-on-write semantics for large data objects
-- Maintain clean APIs for complex data manipulation
+- Support a wide range of Qt data types including lists and enums
 - Build parent-child relationships with automatic memory management
 
 ## Class Hierarchy
 
 - `AbstractGadget`: Base class implementing the core implicit sharing functionality
   - `Gadget`: Simple implementation with a value property
+  - `Child`: Reusable child class for composition examples
   - `Parent`: Base class for parent objects with lastName property
     - `ParentWithChild`: Demonstrates single child composition
     - `ParentWithChildren`: Demonstrates list-based child composition
-  - `Child`: Simple child class used in composition examples
+  - `Types`: Comprehensive demonstration of supported property types
 
 ## Key Features
 
@@ -32,10 +33,12 @@ This implementation is especially useful when you need to:
   - Leverages Qt's meta-object system
   - Uses [Q_GADGET](https://doc.qt.io/qt-6/qobject.html#Q_GADGET) for property system integration
   - Provides custom debug output formatting
-- **Flexible Architecture**:
-  - Base abstract class for common functionality
-  - Template-based private implementation pattern
-  - Support for complex nested structures
+- **Comprehensive Type Support**:
+  - Basic types (bool, int)
+  - Qt types (QString, QByteArray, QJsonObject)
+  - List types (QList&lt;T&gt;)
+  - Enum types with Q_ENUM support
+  - Nested gadget types
 - **JSON Serialization**: Built-in support for JSON serialization and deserialization
 
 ## Implementation Details
@@ -47,12 +50,15 @@ This implementation is especially useful when you need to:
 - Manages shared data through [QSharedDataPointer](https://doc.qt.io/qt-6/qshareddatapointer.html)
 - Implements JSON serialization support
 
-### Derived Classes
-- **Gadget**: Simple implementation demonstrating basic value property
-- **Parent**: Base class for parent-child relationships with lastName property
-- **ParentWithChild**: Shows composition with a single child object
-- **ParentWithChildren**: Demonstrates handling lists of child objects
-- **Child**: Simple child class with a value property
+### Supported Property Types
+The `Types` class demonstrates all supported property types:
+- Boolean values and lists
+- Integer values and lists
+- QByteArray and QByteArrayList
+- QString and QStringList
+- QJsonObject
+- Custom enums and enum lists
+- Nested gadget objects and lists
 
 ## Usage Examples
 
@@ -76,14 +82,14 @@ parent.setChildren({child1, child2});
 
 // JSON serialization
 const auto jsonString = R"({
-    "lastName": "Smith",
-    "children": [
-        { "value": 2 },
-        { "value": 3 }
-    ]
+    "boolean": true,
+    "integers": [1, 2, 3],
+    "string": "test",
+    "enumeration": "debug",
+    "child": { "value": 1 }
 })";
-ParentWithChildren parent;
-parent.fromJsonObject(QJsonDocument::fromJson(jsonString).object());
+Types types;
+types.fromJsonObject(QJsonDocument::fromJson(jsonString).object());
 ```
 
 ## Build Instructions
@@ -112,7 +118,8 @@ make
 
 - Proper memory management through smart pointers
 - Efficient copying through implicit sharing
-- Type-safe templates
+- Type-safe templates and property system
+- Comprehensive unit testing
 - Clear separation of concerns
 - Consistent error checking
 - Property system integration
@@ -121,7 +128,6 @@ make
 ## Qt Classes Used
 
 This project utilizes several Qt classes:
-
 - [QObject](https://doc.qt.io/qt-6/qobject.html) - Base class for Qt objects
 - [QMetaObject](https://doc.qt.io/qt-6/qmetaobject.html) - Contains meta-information about Qt objects
 - [QMetaProperty](https://doc.qt.io/qt-6/qmetaproperty.html) - Provides meta-data about a property
@@ -131,3 +137,4 @@ This project utilizes several Qt classes:
 - [QDebug](https://doc.qt.io/qt-6/qdebug.html) - Debug stream for basic types
 - [QJsonObject](https://doc.qt.io/qt-6/qjsonobject.html) - JSON object representation
 - [QJsonDocument](https://doc.qt.io/qt-6/qjsondocument.html) - JSON document parser and writer
+- [QtTest](https://doc.qt.io/qt-6/qtest.html) - Unit testing framework
