@@ -1,3 +1,6 @@
+// Copyright (C) 2025 Signal Slot Inc.
+// SPDX-License-Identifier: MIT
+
 #include <QtTest/QtTest>
 #include <QDebug>
 #include "abstractgadget.h"

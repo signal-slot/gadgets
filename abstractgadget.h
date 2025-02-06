@@ -1,3 +1,6 @@
+// Copyright (C) 2025 Signal Slot Inc.
+// SPDX-License-Identifier: MIT
+
 #ifndef ABSTRACTGADGET_H
 #define ABSTRACTGADGET_H
 
