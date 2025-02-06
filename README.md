@@ -1,140 +1,166 @@
-# Qt Gadgets with Implicit Sharing
+# Gadgets Library
 
-A sophisticated C++ implementation demonstrating Qt's implicit sharing pattern through a flexible gadget system. This project showcases advanced C++ features, Qt's meta-object system, and efficient memory management through copy-on-write semantics.
+A modern C++ library for creating type-safe, serializable data objects using Qt's meta-object system.
 
-## Overview
+## Features
 
-This project implements a hierarchy of gadget classes that leverage Qt's implicit sharing capabilities for efficient memory usage and copy-on-write semantics. The implementation includes a comprehensive test suite demonstrating various use cases and supported data types.
+- Type-safe data objects with property support
+- Automatic JSON serialization/deserialization for a wide range of types
+- Memory-safe implementation using Qt's implicit sharing (QSharedDataPointer)
+- Comprehensive error handling and validation
+- Modern C++17 implementation
+- Full test coverage with QtTest framework
 
-### Perfect for Complex Data Structures
+## Requirements
 
-This implementation is especially useful when you need to:
-- Create strongly-typed C++ classes with Qt's property system
-- Handle nested data structures with efficient memory usage
-- Implement copy-on-write semantics for large data objects
-- Support a wide range of Qt data types including lists and enums
-- Build parent-child relationships with automatic memory management
+- C++17 compliant compiler
+- CMake 3.16 or higher
+- Qt6 Core and Test modules
 
-## Class Hierarchy
+## Building
 
-- `AbstractGadget`: Base class implementing the core implicit sharing functionality
-  - `Gadget`: Simple implementation with a value property
-  - `Child`: Reusable child class for composition examples
-  - `Parent`: Base class for parent objects with lastName property
-    - `ParentWithChild`: Demonstrates single child composition
-    - `ParentWithChildren`: Demonstrates list-based child composition
-  - `Types`: Comprehensive demonstration of supported property types
+```bash
+mkdir build && cd build
+cmake ..
+cmake --build .
+```
+
+## Running Tests
+
+```bash
+cd build
+ctest
+```
+
+## Usage
+
+### Basic Gadget
+
+```cpp
+class Gadget : public AbstractGadget
+{
+    Q_GADGET
+    Q_PROPERTY(int value READ value WRITE setValue)
+public:
+    Gadget() : AbstractGadget(new Private) {}
+    const QMetaObject* metaObject() const override { return &staticMetaObject; }
+
+    int value() const { return d&lt;Private&gt;()-&gt;value; }
+    void setValue(int value) { d&lt;Private&gt;()-&gt;value = value; }
+
+private:
+    struct Private : public AbstractGadget::Private {
+        int value = 0;
+        Private *clone() const override { return new Private(*this); }
+    };
+};
+```
+
+### Inheritance Support
+
+```cpp
+class SubGadget : public Gadget
+{
+    Q_GADGET
+    Q_PROPERTY(int value1 READ value1 WRITE setValue1)
+public:
+    SubGadget() : Gadget(new Private) {}
+    const QMetaObject* metaObject() const override { return &staticMetaObject; }
+
+    int value1() const { return d&lt;Private&gt;()-&gt;value1; }
+    void setValue1(int value1) { d&lt;Private&gt;()-&gt;value1 = value1; }
+
+private:
+    struct Private : public Gadget::Private {
+        int value1 = 0;
+        Private *clone() const override { return new Private(*this); }
+    };
+};
+```
+
+### Supported Types
+
+The library supports a wide range of types for properties:
+
+- Basic types: bool, int
+- Qt types: QString, QByteArray, QJsonObject
+- Container types: QList&lt;T&gt; for supported types
+- Enum types with Q_ENUM support
+- Nested gadget types and lists of gadgets
+- Custom gadget types
+
+### JSON Serialization
+
+```cpp
+// Create and set values
+Types types;
+types.setBoolean(true);
+types.setIntegers({1, 2, 3, 4, 5});
+types.setString("string");
+types.setEnumeration(Types::Enum::debug);
+
+// Serialize to JSON
+QJsonObject json = types.toJsonObject();
+
+// Deserialize from JSON
+Types other;
+if (other.fromJsonObject(json)) {
+    // Success
+}
+```
+
+Example JSON output:
+```json
+{
+    "boolean": true,
+    "integers": [1, 2, 3, 4, 5],
+    "string": "string",
+    "enumeration": "debug",
+    "gadget": { "value": 1 },
+    "subGadgets": [
+        { "value1": 2 },
+        { "value1": 3 }
+    ]
+}
+```
 
 ## Key Features
 
-- **Implicit Sharing**: Implements copy-on-write semantics for efficient memory usage
-- **Type-Safe Implementation**: Uses modern C++ templates and CRTP pattern
-- **Qt Integration**: 
-  - Leverages Qt's meta-object system
-  - Uses [Q_GADGET](https://doc.qt.io/qt-6/qobject.html#Q_GADGET) for property system integration
-  - Provides custom debug output formatting
-- **Comprehensive Type Support**:
-  - Basic types (bool, int)
-  - Qt types (QString, QByteArray, QJsonObject)
-  - List types (QList&lt;T&gt;)
-  - Enum types with Q_ENUM support
-  - Nested gadget types
-- **JSON Serialization**: Built-in support for JSON serialization and deserialization
+1. Memory Safety
+   - Implicit sharing using QSharedDataPointer
+   - Virtual clone() method for proper copying
+   - RAII-based resource management
+   - Thread-safe reference counting
 
-## Implementation Details
+2. Type Safety
+   - Qt meta-object system integration
+   - Compile-time property type checking
+   - Enum validation and serialization
+   - Container type support
 
-### AbstractGadget
-- Provides the foundation for implicit sharing
-- Implements comparison operators
-- Handles debug output formatting
-- Manages shared data through [QSharedDataPointer](https://doc.qt.io/qt-6/qshareddatapointer.html)
-- Implements JSON serialization support
+3. Error Handling
+   - JSON parsing validation
+   - Property type validation
+   - Comprehensive error reporting
+   - Safe type conversion
 
-### Supported Property Types
-The `Types` class demonstrates all supported property types:
-- Boolean values and lists
-- Integer values and lists
-- QByteArray and QByteArrayList
-- QString and QStringList
-- QJsonObject
-- Custom enums and enum lists
-- Nested gadget objects and lists
+4. Build System
+   - C++17 support
+   - Qt6 integration
+   - Proper test framework
+   - Installation configuration
 
-## Usage Examples
+## Best Practices
 
-```cpp
-// Basic usage with implicit sharing
-Gadget gadget;
-gadget.setValue(1234);
+1. Always implement the clone() method in Private structs
+2. Use Q_PROPERTY for all public data members
+3. Initialize all members in Private structs
+4. Check return values from fromJsonObject()
+5. Use proper const-correctness in accessors
+6. Implement metaObject() for all gadget classes
 
-// Parent-child relationship
-ParentWithChild parent;
-Child child;
-child.setValue(1);
-parent.setChild(child);
+## License
 
-// Working with lists of children
-ParentWithChildren parent;
-Child child1, child2;
-child1.setValue(1);
-child2.setValue(2);
-parent.setChildren({child1, child2});
+MIT License - See LICENSE file for details
 
-// JSON serialization
-const auto jsonString = R"({
-    "boolean": true,
-    "integers": [1, 2, 3],
-    "string": "test",
-    "enumeration": "debug",
-    "child": { "value": 1 }
-})";
-Types types;
-types.fromJsonObject(QJsonDocument::fromJson(jsonString).object());
-```
-
-## Build Instructions
-
-### Prerequisites
-- Qt 6.5 or later
-- C++17 compliant compiler
-- CMake 3.14 or later
-
-### Building
-```bash
-mkdir build
-cd build
-cmake ..
-make
-```
-
-## Design Patterns Used
-
-1. **Implicit Sharing Pattern**: For efficient memory usage and copy-on-write semantics
-2. **CRTP (Curiously Recurring Template Pattern)**: Used in the private implementation
-3. **Composite Pattern**: Demonstrated in parent-child relationships
-4. **PIMPL (Private Implementation)**: Used throughout for ABI stability
-
-## Best Practices Demonstrated
-
-- Proper memory management through smart pointers
-- Efficient copying through implicit sharing
-- Type-safe templates and property system
-- Comprehensive unit testing
-- Clear separation of concerns
-- Consistent error checking
-- Property system integration
-- JSON serialization support
-
-## Qt Classes Used
-
-This project utilizes several Qt classes:
-- [QObject](https://doc.qt.io/qt-6/qobject.html) - Base class for Qt objects
-- [QMetaObject](https://doc.qt.io/qt-6/qmetaobject.html) - Contains meta-information about Qt objects
-- [QMetaProperty](https://doc.qt.io/qt-6/qmetaproperty.html) - Provides meta-data about a property
-- [QSharedData](https://doc.qt.io/qt-6/qshareddata.html) - Base class for implicitly shared objects
-- [QSharedDataPointer](https://doc.qt.io/qt-6/qshareddatapointer.html) - Pointer type for implicit sharing
-- [QString](https://doc.qt.io/qt-6/qstring.html) - Unicode character string
-- [QDebug](https://doc.qt.io/qt-6/qdebug.html) - Debug stream for basic types
-- [QJsonObject](https://doc.qt.io/qt-6/qjsonobject.html) - JSON object representation
-- [QJsonDocument](https://doc.qt.io/qt-6/qjsondocument.html) - JSON document parser and writer
-- [QtTest](https://doc.qt.io/qt-6/qtest.html) - Unit testing framework
+Copyright (C) 2025 Signal Slot Inc.
