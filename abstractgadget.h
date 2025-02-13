@@ -36,14 +36,18 @@ public:
     virtual bool fromJsonObject(const QJsonObject &object);
     virtual QJsonObject toJsonObject() const;
 
-    template <class T>
-    bool operator!=(const T &other) const {
+    bool operator!=(const AbstractGadget &other) const {
         return !operator==(other);
     }
 
-    template <class T>
-    bool operator==(const T &other) const {
-        static const auto mo = metaObject();
+    bool operator==(const AbstractGadget &other) const {
+        if (typeid(*this) != typeid(other)) {
+            return false;
+        }
+        if (data == other.data) {
+            return true;
+        }
+        const auto mo = metaObject();
         for (int i = 0; i < mo->propertyCount(); ++i) {
             const auto property = mo->property(i);
             const auto value = property.readOnGadget(&other);
